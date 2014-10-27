@@ -4,7 +4,6 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var onlineUsers = [];
 var channels = [];
-
 app.use(express.static(__dirname));
 app.get('/', function(req, res){
   res.sendfile('index.html');
@@ -30,13 +29,21 @@ io.on('connection', function(socket){
      onlineUsers[data]['socket'] = socket;
      joinChannel(data,"lobby");
      socket.emit('JOIN',"lobby");
+     talkToUsersOfChannel("lobby","JOIN",{'nickname':data,'channel':'lobby'});
      socket.emit('REGISTERED',channels['lobby']);
   }); 
 
   socket.on('disconnect', function () {
-    var userIndex = onlineUsers.indexOf(socket);
-    console.log(userIndex);
+    if (userNickname = getUserBySocketID(socket.id)) {
+    partChannel(userNickname,onlineUsers[userNickname]['channel']);
+    delete onlineUsers[userNickname];
+    console.log(onlineUsers);
     io.sockets.emit('PART');
+  }
+  });
+
+  socket.on('CHNMSG',function(data) {
+     talkToUsersOfChannel(data.to,"CHNMSG",{'from':data.from,'channel':data.to,'MSG':data.MSG});    
   });
 
 });
@@ -55,8 +62,25 @@ function joinChannel(user,channel) {
     channels[channel] = [];
     channels[channel].push(user);
   }
+}
 
+function partChannel(user,channel) {
+  var userIndex = channels[channel].indexOf(user);
+  channels[channel].splice(userIndex, 1);
+  talkToUsersOfChannel(channel,"PART",{'nickname':user,'channel':channel});
+}
 
+function talkToUsersOfChannel(channel,type,data) {
+  for (element in onlineUsers) {
+    if (onlineUsers[element]['channel'] == channel) onlineUsers[element]['socket'].emit(type,data);
+  }
+}
+
+function getUserBySocketID(socketid) {
+for (element in onlineUsers) {
+  if(onlineUsers[element].socket.id == socketid) return(element);
+}
+return(false);
 }
 
 http.listen(3000, function(){
