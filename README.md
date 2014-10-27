@@ -1,7 +1,4 @@
-# chat-example
+# Socket.io Chat
 
-This is the source code for a very simple chat example used for 
-the [Getting Started](http://socket.io/get-started/chat/) guide 
-of the Socket.IO website.
+This is a server & client chat application implemented using socket.io and nodejs.
 
-Please refer to it to learn how to run this application.
