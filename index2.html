@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+    <div id="login" style="display:none;">
+      <input type="text" id="nickname"/>
+      <input type="button" value="Login" id="loginButton"/> 
+    </div>
+    <div id="chatRoom" style="display:none;">
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+    $(document).ready(function(){
+      var socket = io();
+      var nickname;
+      socket.on('connected', function(result){
+        $("#login").show();
+      });
+
+
+      $('form').submit(function(){
+        socket.emit('PRVMSG', {'from':nickname,'to':'Ibrahiem','MSG':$('#m').val()} );
+        $('#messages').append($('<li>').text($('#m').val()));
+        $('#m').val('');
+        return false;
+      });
+
+      socket.on('PRVMSG', function(msg){
+        $('#messages').append($('<li>').text(msg));
+      });
+
+      socket.on('JOIN', function(channel){
+        $('#messages').append($('<li>').text('You have joined ' + channel));
+      });
+
+      socket.on('USEROFFLINE',function(nickname) {
+        $('#messages').append($('<li>').text(nickname + ' is Offline'));
+      });
+
+      $('#loginButton').click(function() {
+        nickname = $('#nickname').val();
+        connectToChat(nickname);
+      });
+
+      function connectToChat(nickname) {
+      socket.emit('register', nickname);
+      socket.emit('getOnlineUsers','list');
+      
+      $('#login').hide();
+      $('#chatRoom').show();
+      }
+    });
+
+    </script>
+  </body>
+</html>

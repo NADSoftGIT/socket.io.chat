@@ -1,7 +1,7 @@
 {
-  "name": "socket-chat-example",
-  "version": "0.0.1",
-  "description": "my first socket.io app",
+  "name": "NADSoft_Socketio_chat",
+  "version": "1.0.0",
+  "description": "Chat server & client",
   "dependencies": {
     "express": "4.3.1",
     "socket.io": "1.0.2"
