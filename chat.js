@@ -1,3 +1,5 @@
+jQuery.fn.exists = function(){return this.length>0;}
+
       var socket = io();
       var nickname;
 
@@ -20,8 +22,12 @@
         return false;
       });
 
-      socket.on('PRVMSG', function(msg){
-        $('#messages').append($('<li>').text(msg));
+      socket.on('PRVMSG', function(data){
+          if ($("#"+data.from+"Chat").exists() == false)  openPrivateChat(data.from,0);
+          $("#"+data.from+"Chat").append('<p><span class="time">11:17</span> <strong><a href="#">'+data.from+': </a></strong>'+data.MSG+'</p>');
+
+          if ($("#"+data.from+"Tab").parent().hasClass("active") == false) $("#"+data.from+"Tab").fadeTo('slow', 0.5).fadeTo('slow', 1.0).fadeTo('slow', 0.5).fadeTo('slow', 1.0).fadeTo('slow', 0.5).fadeTo('slow', 1.0);
+
       });
 
       socket.on('JOIN', function(data){
@@ -31,11 +37,13 @@
         $(".usersList #" + data.nickname + "InList").remove();
       });
       socket.on('CHNMSG',function(data){
-        //alert(data.channel);
         if(data.from == nickname)
-        $("#" +data.channel+"Channel").append('<p><span class="time">11:17</span> <strong><a href="#">'+data.from+': </a>'+data.MSG+'</strong></p>');
+        $("#ChannelRoom").append('<p><span class="time">11:17</span> <strong><a href="#">'+data.from+': </a>'+data.MSG+'</strong></p>');
           else
-        $("#" +data.channel+"Channel").append('<p><span class="time">11:17</span> <strong><a href="#">'+data.from+': </a></strong>'+data.MSG+'</p>');
+        $("#ChannelRoom").append('<p><span class="time">11:17</span> <strong><a href="#">'+data.from+': </a></strong>'+data.MSG+'</p>');
+
+        if ($("#ChannelRoomTab").parent().hasClass("active") == false) $("#ChannelRoomTab").fadeTo('slow', 0.5).fadeTo('slow', 1.0).fadeTo('slow', 0.5).fadeTo('slow', 1.0).fadeTo('slow', 0.5).fadeTo('slow', 1.0);
+
       });
       socket.on('USEROFFLINE',function(nickname) {
         $('#messages').append($('<li>').text(nickname + ' is Offline'));
@@ -73,8 +81,19 @@
       function fillUserList(users) {
                   $(".usersList").html('');
         users.forEach(function(element,index,array){
-          $(".usersList").append('<a href="javascript:void(0);" id="'+element+'InList" class="list-group-item">'+element+'</a>');
+          $(".usersList").append('<a href="javascript:void(0);" onclick="javascript:openPrivateChat(\''+element+'\',1);" id="'+element+'InList" class="list-group-item">'+element+'</a>');
         });        
+      }
+
+      function openPrivateChat(nickname,active) {
+        $("#chatPanels").append('<li><a href="#'+nickname+'Chat" id="'+nickname+'Tab" role="tab" data-toggle="tab">'+nickname+'</a></li>');
+        $("#chatContent").append('<div class="tab-pane" id="'+nickname+'Chat" panelType="private" reciever="'+nickname+'"></div>');
+        if (active == 1) {
+          $(".tab-pane.active").removeClass("active");
+          $("#chatPanels li.active").removeClass("active");
+
+          $("#" + nickname + "Tab").trigger('click');
+        }
       }
 function closeEditorWarning(){
     return 'في حال قمت بذلك سوف تخرج تلقائياً من الدردشة - هل انت متاكد ؟'

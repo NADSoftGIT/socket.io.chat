@@ -4,7 +4,9 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var onlineUsers = [];
 var channels = [];
+
 app.use(express.static(__dirname));
+
 app.get('/', function(req, res){
   res.sendfile('index.html');
 });
@@ -19,7 +21,7 @@ io.on('connection', function(socket){
 
   socket.on('PRVMSG', function(data){
   	if (isUserOnline(data.to)==true){
-    	onlineUsers[data.to]['socket'].emit('PRVMSG', data.MSG);
+    	onlineUsers[data.to]['socket'].emit('PRVMSG', {'from':data.from,'to':data.to,'MSG':data.MSG});
     }else{ socket.emit('USEROFFLINE',data.to);}
   });
 
