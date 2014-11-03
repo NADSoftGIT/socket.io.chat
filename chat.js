@@ -14,6 +14,10 @@ jQuery.fn.exists = function(){return this.length>0;}
         $('#chatApp').show();
       });
 
+      socket.on('EXIST',function(nickname) {
+        alert('الاسم المستعار مستعمل الرجاء استخدام اسم جديد');
+
+      });
 
       $('form').submit(function(){
         socket.emit('PRVMSG', {'from':nickname,'to':'Ibrahiem','MSG':$('#m').val()} );
@@ -23,7 +27,7 @@ jQuery.fn.exists = function(){return this.length>0;}
       });
 
       socket.on('PRVMSG', function(data){
-          if ($("#"+data.from+"Chat").exists() == false)  openPrivateChat(data.from,0);
+          openPrivateChat(data.from,0);
           $("#"+data.from+"Chat").append('<p><span class="time">11:17</span> <strong><a href="#">'+data.from+': </a></strong>'+data.MSG+'</p>');
 
           if ($("#"+data.from+"Tab").parent().hasClass("active") == false) $("#"+data.from+"Tab").fadeTo('slow', 0.5).fadeTo('slow', 1.0).fadeTo('slow', 0.5).fadeTo('slow', 1.0).fadeTo('slow', 0.5).fadeTo('slow', 1.0);
@@ -31,7 +35,7 @@ jQuery.fn.exists = function(){return this.length>0;}
       });
 
       socket.on('JOIN', function(data){
-        $(".usersList").append('<a href="javascript:void(0);" id="'+data.nickname+'InList" class="list-group-item">'+data.nickname+'</a>');
+        $(".usersList").append('<a href="javascript:void(0);" id="'+data.nickname+'InList" onclick="javascript:openPrivateChat(\''+data.nickname+'\',1);" class="list-group-item">'+data.nickname+'</a>');
       });
       socket.on('PART', function(data){
         $(".usersList #" + data.nickname + "InList").remove();
@@ -86,14 +90,29 @@ jQuery.fn.exists = function(){return this.length>0;}
       }
 
       function openPrivateChat(nickname,active) {
-        $("#chatPanels").append('<li><a href="#'+nickname+'Chat" id="'+nickname+'Tab" role="tab" data-toggle="tab">'+nickname+'</a></li>');
-        $("#chatContent").append('<div class="tab-pane" id="'+nickname+'Chat" panelType="private" reciever="'+nickname+'"></div>');
+        if($("#"+nickname+"Chat").exists()==false){
+          $("#chatPanels").append('<li><a href="#'+nickname+'Chat" id="'+nickname+'Tab" role="tab" data-toggle="tab">'+nickname+'</a></li>');
+          $("#chatContent").append('<div class="tab-pane" id="'+nickname+'Chat" panelType="private" reciever="'+nickname+'"></div>');
+        }
         if (active == 1) {
           $(".tab-pane.active").removeClass("active");
           $("#chatPanels li.active").removeClass("active");
-
           $("#" + nickname + "Tab").trigger('click');
         }
+      }
+
+      function joinChannel(channel,tab) {
+        socket.emit('joinChannel', channel);
+        $("#ChannelRoom").attr('reciever',channel);
+        $("#ChannelRoomTab").html($(tab).html());
+        $("#ChannelRoom").html('');
+        $(".list-group-item.active").removeClass("active");
+        $(tab).addClass("active");
+          $(".tab-pane.active").removeClass("active");
+          $("#chatPanels li.active").removeClass("active");
+          $("#ChannelRoomTab").trigger('click');        
+
+
       }
 function closeEditorWarning(){
     return 'في حال قمت بذلك سوف تخرج تلقائياً من الدردشة - هل انت متاكد ؟'

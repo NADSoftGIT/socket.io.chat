@@ -17,8 +17,6 @@ io.on('connection', function(socket){
 
   socket.emit('connected','Done');
 
-
-
   socket.on('PRVMSG', function(data){
   	if (isUserOnline(data.to)==true){
     	onlineUsers[data.to]['socket'].emit('PRVMSG', {'from':data.from,'to':data.to,'MSG':data.MSG});
@@ -27,13 +25,27 @@ io.on('connection', function(socket){
 
   socket.on('register',function(data){
   //	console.log(data);
+if (typeof onlineUsers[data] !== 'undefined'){
+       socket.emit('EXIST',data);
+
+}else{
+
   	 onlineUsers[data] = [];
      onlineUsers[data]['socket'] = socket;
      joinChannel(data,"lobby");
      socket.emit('JOIN',"lobby");
      talkToUsersOfChannel("lobby","JOIN",{'nickname':data,'channel':'lobby'});
      socket.emit('REGISTERED',channels['lobby']);
+   }
   }); 
+
+  socket.on('joinChannel',function(channel) {
+    var userNickname = getUserBySocketID(socket.id);
+     partChannel(userNickname,onlineUsers[userNickname]['channel']);
+     joinChannel(userNickname,channel);
+     talkToUsersOfChannel(channel,"JOIN",{'nickname':userNickname,'channel':channel});     
+     socket.emit('REGISTERED',channels[channel]);
+  });
 
   socket.on('disconnect', function () {
     if (userNickname = getUserBySocketID(socket.id)) {
